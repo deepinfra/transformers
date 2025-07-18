@@ -534,6 +534,7 @@ class DeepseekV3Model(DeepseekV3PreTrainedModel):
         self.layers = nn.ModuleList(
             [DeepseekV3DecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
         )
+        self.mtp_layer = DeepseekV3DecoderLayer(config, config.num_hidden_layers)
         self.norm = DeepseekV3RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.rotary_emb = DeepseekV3RotaryEmbedding(config=config)
         self.gradient_checkpointing = False
@@ -694,9 +695,16 @@ class DeepseekV3ForCausalLM(DeepseekV3PreTrainedModel, GenerationMixin):
         slice_indices = slice(-logits_to_keep, None) if isinstance(logits_to_keep, int) else logits_to_keep
         logits = self.lm_head(hidden_states[:, slice_indices, :])
 
+        mtp_logits = self.lm_head(self.model.mtp_layer(hidden_states))
+
         loss = None
         if labels is not None:
-            loss = self.loss_function(logits=logits, labels=labels, vocab_size=self.config.vocab_size, **kwargs)
+            loss = F.kl_div(
+                F.log_softmax(mtp_logits, dim=-1),
+                F.softmax(logits.detach(), dim=-1),
+                reduction="batchmean"
+            )
+            # loss = self.loss_function(logits=logits, labels=labels, vocab_size=self.config.vocab_size, **kwargs)
 
         return CausalLMOutputWithPast(
             loss=loss,
