@@ -5,7 +5,7 @@ model’s forward (between `logits` and `mtp_logits`).
 
 Usage (single‑GPU smoke test):
 
-    accelerate launch tiny_train_mtp.py \
+    accelerate launch train_mtp.py \
         --model_path /data/weights/vllm-moonshotai--Kimi-K2-Instruct/003/ \
         --output_dir ./mtp_out
 """
@@ -23,6 +23,7 @@ from transformers import (
     TrainingArguments,
     Trainer,
     set_seed,
+    AutoModel,
 )
 from transformers.models.deepseek_v3.modeling_deepseek_v3 import DeepseekV3ForCausalLM
 
@@ -76,7 +77,7 @@ def main():
     # tokenizer & model
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
     hf_config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True)
-    model = DeepseekV3ForCausalLM.from_pretrained(args.model_path, config=hf_config, trust_remote_code=True)
+    model = AutoModel.from_pretrained(args.model_path, config=hf_config, trust_remote_code=True, device_map="cuda")
 
     for p in model.parameters():
         p.requires_grad = False
