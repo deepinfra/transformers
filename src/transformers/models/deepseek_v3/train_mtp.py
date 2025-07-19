@@ -74,10 +74,12 @@ def main():
 
     set_seed(args.seed)
 
+    device_map = {'embed_tokens': 0, 'layers.0': 0, 'layers.1': 0, 'layers.2': 0, 'layers.3': 0, 'layers.4': 0, 'layers.5': 0, 'layers.6': 0, 'layers.7': 1, 'layers.8': 1, 'layers.9': 1, 'layers.10': 1, 'layers.11': 1, 'layers.12': 1, 'layers.13': 1, 'layers.14': 2, 'layers.15': 2, 'layers.16': 2, 'layers.17': 2, 'layers.18': 2, 'layers.19': 2, 'layers.20': 2, 'layers.21': 3, 'layers.22': 3, 'layers.23': 3, 'layers.24': 3, 'layers.25': 3, 'layers.26': 3, 'layers.27': 3, 'layers.28': 4, 'layers.29': 4, 'layers.30': 4, 'layers.31': 4, 'layers.32': 4, 'layers.33': 4, 'layers.34': 4, 'layers.35': 5, 'layers.36': 5, 'layers.37': 5, 'layers.38': 5, 'layers.39': 5, 'layers.40': 5, 'layers.41': 5, 'layers.42': 6, 'layers.43': 6, 'layers.44': 6, 'layers.45': 6, 'layers.46': 6, 'layers.47': 6, 'layers.48': 6, 'layers.49': 7, 'layers.50': 7, 'layers.51': 7, 'layers.52': 7, 'layers.53': 7, 'layers.54': 7, 'layers.55': 6, 'layers.56': 5, 'layers.57': 4, 'layers.58': 3, 'layers.59': 2, 'layers.60': 1, 'layers.61': 0, 'norm': 0}
     # tokenizer & model
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, trust_remote_code=True)
     hf_config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True)
-    model = AutoModel.from_pretrained(args.model_path, config=hf_config, trust_remote_code=True, device_map="cuda")
+    model = AutoModel.from_pretrained(args.model_path, config=hf_config, trust_remote_code=True, device_map=device_map,
+                                      torch_dtype=torch.bfloat16)
 
     for p in model.parameters():
         p.requires_grad = False
