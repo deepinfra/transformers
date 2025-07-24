@@ -532,9 +532,8 @@ class DeepseekV3Model(DeepseekV3PreTrainedModel):
 
         self.embed_tokens = nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
         self.layers = nn.ModuleList(
-            [DeepseekV3DecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers)]
+            [DeepseekV3DecoderLayer(config, layer_idx) for layer_idx in range(config.num_hidden_layers + 1)]
         )
-        self.mtp_layer = DeepseekV3DecoderLayer(config, config.num_hidden_layers)
         self.norm = DeepseekV3RMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.rotary_emb = DeepseekV3RotaryEmbedding(config=config)
         self.gradient_checkpointing = False
